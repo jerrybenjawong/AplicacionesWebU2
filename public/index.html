@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UPS Cloud Tasks | Entorno Colaborativo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #060913;
+      --bg-surface: #0c1322;
+      --bg-surface-elevated: #111a2e;
+      --bg-input: #152238;
+      
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-accent: rgba(99, 102, 241, 0.3);
+
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-indigo: #6366f1;
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dark: #64748b;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+      overflow-x: hidden; /* Elimina cualquier barra de desplazamiento horizontal */
+    }
+
+    body {
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(217, 70, 239, 0.08) 0%, transparent 40%);
+      background-attachment: fixed;
+      padding: 24px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1320px;
+      margin: 0 auto;
+      overflow-x: hidden;
+    }
+
+    /* Barra Superior */
+    header {
+      background: rgba(12, 19, 34, 0.75);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      background: var(--primary-gradient);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 18px;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+    }
+    .brand h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+    .brand p { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+
+    .header-actions { display: flex; align-items: center; gap: 14px; }
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 30px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: #34d399;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulseGlow 1.8s infinite;
+    }
+    @keyframes pulseGlow {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 14px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 30px;
+    }
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      background: var(--primary-gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    /* Pantalla de Acceso */
+    #authOverlay {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 70vh;
+    }
+
+    .auth-card {
+      background: rgba(12, 19, 34, 0.85);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 440px;
+      padding: 38px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(99, 102, 241, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: var(--primary-gradient);
+    }
+
+    .auth-title { text-align: center; margin-bottom: 24px; }
+    .auth-title h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+    .auth-title p { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+
+    .auth-tabs {
+      display: flex;
+      background: var(--bg-surface-elevated);
+      padding: 4px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border-subtle);
+    }
+    .auth-tab {
+      flex: 1;
+      text-align: center;
+      padding: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+    .auth-tab.active {
+      background: var(--primary-gradient);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+
+    /* Formularios y Botones */
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.03em;
+    }
+    .form-control {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 13.5px;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent-indigo);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+    .btn-gradient {
+      background: var(--primary-gradient);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+    }
+    .btn-gradient:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 22px rgba(99, 102, 241, 0.55);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+    }
+    .btn-ghost:hover {
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+    }
+    .btn-danger-subtle {
+      background: rgba(244, 63, 94, 0.1);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.25);
+    }
+    .btn-danger-subtle:hover {
+      background: rgba(244, 63, 94, 0.2);
+      color: #fff;
+    }
+    .btn-block { width: 100%; }
+
+    /* Métricas */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+    .metric-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+    .metric-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .card-total::after { background: var(--primary-gradient); }
+    .card-pending::after { background: var(--accent-amber); }
+    .card-progress::after { background: var(--accent-cyan); }
+    .card-completed::after { background: var(--accent-emerald); }
+
+    .metric-header { display: flex; justify-content: space-between; align-items: center; }
+    .metric-title { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); }
+    .metric-num { font-size: 32px; font-weight: 800; margin-top: 8px; letter-spacing: -0.03em; }
+
+    /* Layout del Tablero */
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 2.3fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .panel-title { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+
+    /* Filtros Rápidos */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .filter-chip {
+      padding: 6px 14px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-chip.active {
+      background: var(--accent-indigo);
+      border-color: var(--accent-indigo);
+      color: #fff;
+    }
+
+    /* Tarjetas de Tareas */
+    .tasks-grid { display: flex; flex-direction: column; gap: 14px; }
+    .task-card {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      transition: all 0.2s ease;
+    }
+    .task-card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    .task-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .task-title { font-size: 15px; font-weight: 700; color: #fff; }
+    .task-desc { color: var(--text-muted); font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
+
+    .tag-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .tag {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .tag-baja { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); }
+    .tag-media { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .tag-alta { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+    .tag-cat { background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid var(--border-subtle); }
+
+    .tag-deadline {
+      background: rgba(99, 102, 241, 0.1);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .tag-deadline.overdue {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fda4af;
+      border-color: rgba(244, 63, 94, 0.4);
+    }
+
+    .task-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .author-info { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+    .author-initial {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--bg-input);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    /* Muro de Auditoría en Tiempo Real */
+    .feed-container {
+      max-height: 580px;
+      overflow-y: auto;
+      overflow-x: hidden; /* Cero barras horizontales */
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-right: 4px;
+    }
+    .feed-container::-webkit-scrollbar { width: 5px; }
+    .feed-container::-webkit-scrollbar-thumb { background: var(--bg-surface-elevated); border-radius: 10px; }
+
+    .feed-entry {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      word-break: break-word; /* Evita que textos largos desborden el ancho */
+    }
+    .feed-entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .feed-pill {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .pill-created { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .pill-updated { background: rgba(6, 182, 212, 0.2); color: #38bdf8; }
+    .pill-deleted { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+    .pill-info { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+
+    .feed-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dark); }
+    .feed-message { font-size: 12.5px; line-height: 1.4; color: var(--text-main); word-break: break-word; }
+    .feed-message strong { color: #fff; }
+    .feed-message em { color: #a5b4fc; font-style: normal; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-dark);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div>
+          <h1>UPS Cloud Tasks</h1>
+          <p>Malla Distribuida & Auditoría Reactiva</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="live-badge">
+          <div class="pulse-dot"></div>
+          <span>WebSocket Activo</span>
+        </div>
+        <div id="userProfile" class="user-profile" style="display: none;">
+          <div class="user-avatar" id="avatarInitial">U</div>
+          <span id="userNameHeader" style="font-size: 13px; font-weight: 600;">Usuario</span>
+          <button class="btn btn-ghost" style="padding: 4px 10px; font-size: 11px; margin-left: 6px;" onclick="logout()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+            Salir
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Pantalla de Acceso -->
+    <div id="authOverlay">
+      <div class="auth-card">
+        <div class="auth-title">
+          <h2>Centro de Autenticación</h2>
+          <p>Ingrese sus credenciales de cátedra para sincronizar</p>
+        </div>
+
+        <div class="auth-tabs">
+          <div class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Iniciar Sesión</div>
+          <div class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Nuevo Registro</div>
+        </div>
+
+        <form id="authForm" onsubmit="handleAuthSubmit(event)">
+          <div class="form-group" id="groupNombre" style="display: none;">
+            <label>Nombre Completo</label>
+            <input type="text" id="authNombre" class="form-control" placeholder="Ej. Juan Pérez">
+          </div>
+          <div class="form-group">
+            <label>Correo Electrónico Institucional</label>
+            <input type="email" id="authEmail" class="form-control" required placeholder="estudiante@ups.edu.ec">
+          </div>
+          <div class="form-group">
+            <label>Contraseña Maestra</label>
+            <input type="password" id="authPassword" class="form-control" required minlength="6" placeholder="••••••••••••">
+          </div>
+          <button type="submit" id="authSubmitBtn" class="btn btn-gradient btn-block" style="margin-top: 22px;">
+            Acceder al Espacio de Trabajo
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Espacio de Trabajo Privado -->
+    <div id="workspace" style="display: none;">
+      <div class="metrics-grid">
+        <div class="metric-card card-total">
+          <div class="metric-header">
+            <span class="metric-title">Tareas Registradas</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12h6M9 16h6M9 8h6"/></svg>
+          </div>
+          <div class="metric-num" id="metricTotal">0</div>
+        </div>
+        <div class="metric-card card-pending">
+          <div class="metric-header">
+            <span class="metric-title" style="color: #fbbf24;">Pendientes</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="metric-num" id="metricPendientes" style="color: #fbbf24;">0</div>
+        </div>
+        <div class="metric-card card-progress">
+          <div class="metric-header">
+            <span class="metric-title" style="color: #38bdf8;">En Progreso</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          </div>
+          <div class="metric-num" id="metricProgreso" style="color: #38bdf8;">0</div>
+        </div>
+        <div class="metric-card card-completed">
+          <div class="metric-header">
+            <span class="metric-title" style="color: #34d399;">Finalizadas</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="metric-num" id="metricCompletadas" style="color: #34d399;">0</div>
+        </div>
+      </div>
+
+      <div class="dashboard-layout">
+        <div>
+          <!-- Panel de Creación -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Nueva Tarea en Malla</span>
+              <span style="font-size: 12px; color: var(--text-dark);">Persistencia NoSQL + Multer</span>
+            </div>
+            <form id="taskForm" onsubmit="handleTaskSubmit(event)">
+              <div class="form-group">
+                <label>Título del Requerimiento *</label>
+                <input type="text" id="taskTitulo" class="form-control" required placeholder="Ej. Implementar autenticación distribuida JWT">
+              </div>
+
+              <div class="form-group">
+                <label>Especificación Técnica</label>
+                <textarea id="taskDescripcion" class="form-control" rows="2" placeholder="Detalles de ejecución, dependencias y condiciones de entrega..."></textarea>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 14px;">
+                <div class="form-group">
+                  <label>Prioridad</label>
+                  <select id="taskPrioridad" class="form-control">
+                    <option value="baja">Baja</option>
+                    <option value="media" selected>Media</option>
+                    <option value="alta">Alta</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Categoría</label>
+                  <input type="text" id="taskCategoria" class="form-control" value="Backend">
+                </div>
+                <div class="form-group">
+                  <label>Fecha de Vencimiento</label>
+                  <input type="date" id="taskFechaLimite" class="form-control">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Adjunto Hipermedia (Multipart)</label>
+                <input type="file" id="taskArchivo" class="form-control" style="padding: 8px;">
+              </div>
+
+              <button type="submit" class="btn btn-gradient" style="margin-top: 6px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Guardar y Propagar por WebSocket
+              </button>
+            </form>
+          </div>
+
+          <!-- Tablero de Tareas -->
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <span class="panel-title">Tablero Operativo</span>
+                <span id="taskCountBadge" style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">0 tareas</span>
+              </div>
+            </div>
+
+            <div class="filter-bar">
+              <div class="filter-chip active" onclick="applyFilter('todos', this)">Todas</div>
+              <div class="filter-chip" onclick="applyFilter('pendiente', this)">Pendientes</div>
+              <div class="filter-chip" onclick="applyFilter('en_progreso', this)">En Progreso</div>
+              <div class="filter-chip" onclick="applyFilter('completada', this)">Finalizadas</div>
+            </div>
+
+            <div id="tasksList" class="tasks-grid">
+              <!-- Inyección Dinámica -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Auditoría Reactiva WebSockets -->
+        <div>
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Auditoría en Tiempo Real</span>
+              <span style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan);">SOCKET.IO</span>
+            </div>
+            <div class="feed-container" id="activityFeed">
+              <div class="empty-state">Canal a la escucha de eventos en red...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
